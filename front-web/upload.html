@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Subir PDF</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docx@8.3.0/build/index.umd.js"></script>
+  <script src="upload.js"></script>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-content space-between">
+      <a href="index.html" class="nav-btn">Inicio</a>
+      <a href="#" class="nav-btn arreglar-btn" id="openFixModal">Arreglar documentos</a>
+    </div>
+  </nav>
+  <div class="container">
+    <h1>Subir documento PDF</h1>
+    <form id="uploadForm" enctype="multipart/form-data">
+      <input type="file" name="pdf" accept="application/pdf" required />
+      <button type="submit">Subir documento</button>
+    </form>
+    <div id="result-container">
+      <div id="result"></div>
+    </div>
+    <div id="search-results-section">
+      <h2 class="results-title">Documentos almacenados</h2>
+      <div id="pdfList"></div>
+    </div>
+  </div>
+  <!-- Modal para arreglar documentos -->
+  <div id="fixModal" class="modal-bg">
+    <div class="modal-content">
+      <h2 class="modal-title">Arreglar documentos</h2>
+      <form id="fixUploadForm" enctype="multipart/form-data">
+        <input type="file" name="pdf" accept="application/pdf" required />
+        <button type="submit" id="reconstruirBtn">Reconstruir</button>
+      </form>
+      <div id="fixResult" class="modal-result"></div>
+      <canvas id="pdf-canvas" class="modal-canvas"></canvas>
+      <button id="downloadFixedPdf" class="modal-download-btn">Descargar PDF generado</button>
+      <button id="downloadFixedDocx" class="modal-download-btn">Descargar DOCX generado</button>
+      <button id="closeFixModal" class="modal-close-btn">Cerrar</button>
+    </div>
+  </div>
+  <script>
+    // Modal lógica
+    document.getElementById('openFixModal').onclick = function(e) {
+      e.preventDefault();
+      document.getElementById('fixModal').style.display = 'flex';
+      document.getElementById('fixResult').textContent = '';
+      document.getElementById('fixUploadForm').reset();
+      document.getElementById('pdf-canvas').style.display = 'none';
+      document.getElementById('downloadFixedPdf').style.display = 'none';
+      document.getElementById('downloadFixedDocx').style.display = 'none';
+    };
+    document.getElementById('closeFixModal').onclick = function() {
+      document.getElementById('fixModal').style.display = 'none';
+      document.getElementById('fixResult').textContent = '';
+      document.getElementById('pdf-canvas').style.display = 'none';
+      document.getElementById('downloadFixedPdf').style.display = 'none';
+      document.getElementById('downloadFixedDocx').style.display = 'none';
+    };
+
+    // Lógica de subida para el modal de arreglar documentos
+    document.getElementById('fixUploadForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const fileInput = this.elements['pdf'];
+      const file = fileInput.files[0];
+      if (!file) return;
+      const resultDiv = document.getElementById('fixResult');
+      resultDiv.textContent = 'Procesando...';
+
+      const canvas = document.getElementById('pdf-canvas');
+      let downloadPdfBtn = document.getElementById('downloadFixedPdf');
+      let downloadDocxBtn = document.getElementById('downloadFixedDocx');
+      canvas.style.display = 'none';
+      downloadPdfBtn.style.display = 'none';
+      downloadDocxBtn.style.display = 'none';
+
+      // Elimina listeners previos y reasigna variables a los nuevos nodos
+      const newPdfBtn = downloadPdfBtn.cloneNode(true);
+      const newDocxBtn = downloadDocxBtn.cloneNode(true);
+      downloadPdfBtn.parentNode.replaceChild(newPdfBtn, downloadPdfBtn);
+      downloadDocxBtn.parentNode.replaceChild(newDocxBtn, downloadDocxBtn);
+      downloadPdfBtn = newPdfBtn;
+      downloadDocxBtn = newDocxBtn;
+
+      // Enviar archivo al backend para OCR y generación de PDF/DOCX
+      const formData = new FormData();
+      formData.append('pdf', file);
+
+      try {
+        const res = await fetch('/pdf/ocr', {
+          method: 'POST',
+          body: formData
+        });
+        const responseText = await res.text();
+        let data;
+        try {
+          data = JSON.parse(responseText);
+        } catch (e) {
+          resultDiv.textContent = 'Error inesperado: ' + responseText;
+          return;
+        }
+        if (res.ok) {
+          resultDiv.innerHTML = `
+            Documento procesado correctamente.<br>
+            <a href="${data.ocr_pdf}" download>Descargar PDF generado</a><br>
+            <a href="${data.ocr_docx}" download>Descargar DOCX generado</a>
+          `;
+          // Opcional: renderizar la primera página como preview
+          const reader = new FileReader();
+          reader.onload = async function(ev) {
+            const typedarray = new Uint8Array(ev.target.result);
+            try {
+              const pdf = await pdfjsLib.getDocument({data: typedarray}).promise;
+              const page = await pdf.getPage(1);
+              const viewport = page.getViewport({ scale: 0.6 });
+              canvas.width = viewport.width;
+              canvas.height = viewport.height;
+              const context = canvas.getContext('2d');
+              await page.render({ canvasContext: context, viewport }).promise;
+              canvas.style.display = 'block';
+            } catch {}
+          };
+          reader.readAsArrayBuffer(file);
+        } else {
+          resultDiv.textContent = 'Error al procesar: ' + (data.error || 'Desconocido');
+        }
+      } catch (err) {
+        resultDiv.textContent = 'Error al procesar: ' + err.message;
+      }
+    });
+
+    // Cargar pdf-lib desde CDN para crear PDFs desde canvas
+    if (!window.pdfLib) {
+      const script = document.createElement('script');
+      script.src = "https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js";
+      document.head.appendChild(script);
+      script.onload = () => { window.pdfLib = window['pdfLib']; };
+    }
+  </script>
+</body>
+</html>

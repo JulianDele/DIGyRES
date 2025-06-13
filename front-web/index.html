@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Subir PDF</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="search.js"></script>
+</head>
+
+<body>
+  <nav class="navbar">
+    <div class="navbar-content">
+      <button id="openLoginModal" class="nav-btn">Subir documentos</button>
+    </div>
+  </nav>
+  <div id="loginModal" class="modal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:#0008;z-index:1000;align-items:center;justify-content:center;">
+    <div style="background:#fff;padding:32px 24px;border-radius:8px;box-shadow:0 2px 16px #0002;max-width:340px;width:90%;display:flex;flex-direction:column;gap:18px;">
+      <h2 style="margin:0;text-align:center;color:#1976d2;">Iniciar sesión</h2>
+      <input id="loginUser" type="text" placeholder="Nombre de usuario" style="padding:8px;border-radius:4px;border:1px solid #ccc;" />
+      <input id="loginPass" type="password" placeholder="Contraseña" style="padding:8px;border-radius:4px;border:1px solid #ccc;" />
+      <button id="loginBtn" class="nav-btn" style="width:100%;">Ingresar</button>
+      <button id="closeLoginModal" style="background:none;border:none;color:#888;cursor:pointer;">Cancelar</button>
+      <div id="loginError" style="color:#e53935;text-align:center;font-size:0.95em;"></div>
+    </div>
+  </div>
+  <div class="container">
+    <h1>Buscar documentos PDF</h1>
+    <form id="searchForm" class="search-form">
+      <input type="text" id="searchInput" placeholder="Buscar por nombre..." class="search-input" />
+      <button type="submit" class="nav-btn search-btn">Buscar</button>
+    </form>
+    <div id="search-results-section">
+      <h2 class="results-title">Resultados</h2>
+      <div id="pdfList"></div>
+      <h2 class="results-title" style="margin-top:24px;">Contenido relacionado</h2>
+      <div id="relatedList"></div>
+    </div>
+  </div>
+  <script>
+    async function fetchPDFs(query = "") {
+      // Cambia para usar el backend y obtener todos los documentos
+      const [docsRes, filesRes] = await Promise.all([
+        fetch('/pdf/list-firestore'),
+        fetch('/pdf/list')
+      ]);
+      let docs = await docsRes.json();
+      const files = await filesRes.json();
+      // Filtrar solo los documentos cuyo archivo existe realmente
+      docs = docs.filter(f => {
+        if (!f.url_archivo_pdf) return false;
+        const filename = f.url_archivo_pdf.split('/').pop();
+        return files.includes(filename);
+      });
+
+      // Resultados por título
+      let filtered = docs;
+      if(query) {
+        filtered = docs.filter(f => f.titulo && f.titulo.toLowerCase().includes(query.toLowerCase()));
+      }
+      const list = filtered.length
+        ? '<ul style="list-style:none;padding:0;">' + filtered.map(f => `<li style='margin:8px 0;display:flex;align-items:center;gap:10px;'><a href="${f.url_archivo_pdf}" download class="download-btn" title="Descargar" style="background:#1976d2;color:#fff;border:none;border-radius:4px;padding:4px 10px;cursor:pointer;font-size:0.95em;text-decoration:none;">Descargar</a><a href="${f.url_archivo_pdf}" target="_blank" style="color:#1976d2;text-decoration:underline;flex:1;">${f.titulo}</a></li>`).join('') + '</ul>'
+        : '<div style="color:#888;">No se encontraron documentos.</div>';
+      document.getElementById('pdfList').innerHTML = list;
+
+      // Resultados por contenido_texto (relacionados) - al menos 2 palabras coinciden
+      let related = [];
+      if(query) {
+        const qWords = query.toLowerCase().split(/\s+/).filter(Boolean);
+        related = docs.filter(f => {
+          if (filtered.includes(f)) return false;
+          if (!f.contenido_texto) return false;
+          const texto = f.contenido_texto.toLowerCase();
+          let matchCount = 0;
+          for (const word of qWords) {
+            if (texto.includes(word)) matchCount++;
+            if (matchCount >= 2) return true;
+          }
+          return false;
+        });
+      }
+      // Solo enlace, sin botón de descargar
+      const relatedList = related.length
+        ? '<ul style="list-style:none;padding:0;">' + related.map(f => `<li style='margin:8px 0;display:flex;align-items:center;gap:10px;'><a href="${f.url_archivo_pdf}" target="_blank" style="color:#1976d2;text-decoration:underline;flex:1;">${f.titulo}</a></li>`).join('') + '</ul>'
+        : '<div style="color:#888;">No hay contenido relacionado.</div>';
+      document.getElementById('relatedList').innerHTML = relatedList;
+    }
+    document.getElementById('searchForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      fetchPDFs(document.getElementById('searchInput').value);
+    });
+    fetchPDFs();
+
+    document.getElementById('openLoginModal').onclick = function() {
+      document.getElementById('loginModal').style.display = 'flex';
+    };
+    document.getElementById('closeLoginModal').onclick = function() {
+      document.getElementById('loginModal').style.display = 'none';
+      document.getElementById('loginError').textContent = '';
+    };
+    document.getElementById('loginBtn').onclick = function() {
+      const user = document.getElementById('loginUser').value.trim();
+      const pass = document.getElementById('loginPass').value.trim();
+      if (!user || !pass) {
+        document.getElementById('loginError').textContent = 'Completa ambos campos.';
+        return;
+      }
+      if (user !== 'ADMIN' || pass !== 'AYTM-M0') {
+        document.getElementById('loginError').textContent = 'Usuario o contraseña incorrectos.';
+        return;
+      }
+      document.getElementById('loginModal').style.display = 'none';
+      document.getElementById('loginError').textContent = '';
+      window.location.href = 'upload.html';
+    };
+  </script>
+</body>
+</html>

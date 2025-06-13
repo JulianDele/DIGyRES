@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "cors": "^2.8.5",
+    "docx": "^9.5.0",
+    "express": "^5.1.0",
+    "firebase": "^11.9.0",
+    "mongodb": "^6.17.0",
+    "multer": "^2.0.0",
+    "pdf-parse": "^1.1.1",
+    "pdf-poppler": "^0.2.1",
+    "pdfkit": "^0.17.1",
+    "sharp": "^0.34.2",
+    "tesseract.js": "^5.1.1"
+  }
+}
