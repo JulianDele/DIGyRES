@@ -13,10 +13,75 @@ body {
 }
 
 .navbar-content {
-  max-width: 400px;
+  max-width: 900px;
+  width: 95%;
   margin: 0 auto;
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
+  background: #1976d2;
+  border-radius: 10px;
+  box-shadow: 0 2px 12px #1976d220, 0 1px 4px #0001;
+  padding: 0 18px;
+  min-height: 48px;
+}
+
+.nav-btn {
+  color: #fff;
+  background: #125ea2;
+  padding: 10px 26px;
+  border-radius: 7px;
+  font-weight: bold;
+  font-size: 1.08em;
+  border: 2px solid #fff;
+  transition: background 0.2s, color 0.2s, border 0.2s;
+  box-shadow: 0 2px 8px #1976d220;
+  text-decoration: none;
+  margin: 0;
+  outline: none;
+  cursor: pointer;
+  display: inline-block;
+}
+
+.nav-btn:hover, .nav-btn:focus {
+  background: #fff;
+  color: #1976d2;
+  border: 2px solid #125ea2;
+}
+
+.navbar-content > div {
+  display: flex;
+  gap: 18px;
+}
+
+.navbar {
+  width: 100%;
+  background: #1976d2;
+  padding: 18px 0 16px 0;
+  box-shadow: 0 2px 8px #0001;
+}
+
+.nav-btn {
+  color: #1976d2;
+  background: #e3eafc;
+  padding: 10px 26px;
+  border-radius: 7px;
+  font-weight: bold;
+  font-size: 1.08em;
+  border: 2px solid #1976d2;
+  transition: background 0.2s, color 0.2s, border 0.2s;
+  box-shadow: 0 2px 8px #1976d220;
+  text-decoration: none;
+  margin: 0;
+  outline: none;
+  cursor: pointer;
+  display: inline-block;
+}
+
+.nav-btn:hover, .nav-btn:focus {
+  background: #1976d2;
+  color: #fff;
+  border: 2px solid #125ea2;
 }
 
 .nav-btn {
@@ -24,7 +89,6 @@ body {
   background: #125ea2;
   padding: 9px 20px;
   border-radius: 5px;
-  text-decoration: none;
   font-weight: bold;
   font-size: 1em;
   transition: background 0.2s;
@@ -35,8 +99,62 @@ body {
   background: #1976d2;
 }
 
+.index-split {
+  display: flex;
+  height: 70vh;
+  max-width: 900px;
+  margin: 60px auto;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px #0002;
+  overflow: hidden;
+}
+.fullvh {
+  height: 100vh !important;
+  max-width: 100vw !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+.index-left, .index-right {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-width: 0;
+  padding: 40px 24px;
+}
+.index-left {
+  border-right: 1.5px solid #e3eafc;
+}
+.index-btn {
+  font-size: 1.2em;
+  padding: 20px 40px;
+  margin: 32px auto 0 auto;
+  display: block;
+}
+.index-desc {
+  color: #555;
+  margin-bottom: 12px;
+  margin-top: 0;
+  font-size: 1.08em;
+  text-align: center;
+}
+@media (max-width: 800px) {
+  .index-split {
+    flex-direction: column;
+    height: auto;
+    min-height: 60vh;
+  }
+  .index-left {
+    border-right: none;
+    border-bottom: 1.5px solid #e3eafc;
+  }
+}
+
 .container {
-  max-width: 400px;
+  max-width: 700px;
   margin: 60px auto;
   background: #fff;
   border-radius: 12px;
@@ -45,6 +163,8 @@ body {
   position: relative;
   animation: fadeIn 0.7s;
 }
+
+
 
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(30px); }
@@ -75,6 +195,26 @@ h1 {
 }
 #uploadForm input[type="file"]:focus {
   border: 1.5px solid #125ea2;
+  outline: none;
+}
+
+#uploadForm input[type="text"],
+#uploadForm input[type="number"] {
+  padding: 6px 8px;
+  border: 1.2px solid #1976d2;
+  border-radius: 5px;
+  background: #f8faff;
+  font-size: 0.97em;
+  margin-bottom: 2px;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border 0.2s;
+  max-width: 220px;
+  align-self: flex-start;
+}
+#uploadForm input[type="text"]:focus,
+#uploadForm input[type="number"]:focus {
+  border: 1.2px solid #125ea2;
   outline: none;
 }
 
@@ -128,6 +268,12 @@ h1 {
   border: 1.5px solid #125ea2;
   outline: none;
 }
+.fila-titulos {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px; 
+}
+
 .search-btn {
   padding: 8px 18px;
 }
@@ -145,6 +291,7 @@ h1 {
   text-align: left;
   letter-spacing: 0.5px;
 }
+
 #pdfList ul {
   list-style: none;
   padding: 0;
@@ -190,14 +337,110 @@ h1 {
 .modal-content {
   background: #fff;
   padding: 32px 24px;
-  border-radius: 8px;
-  box-shadow: 0 2px 16px #0002;
-  max-width: 340px;
-  width: 90%;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px #1976d240, 0 2px 16px #0002;
+  max-width: 350px;
+  width: 95%;
   display: flex;
   flex-direction: column;
   gap: 18px;
   align-items: stretch;
+  border: 1.5px solid #1976d2;
+}
+
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: stretch;
+}
+.modal-form input[type="text"],
+.modal-form input[type="number"] {
+  padding: 8px 10px;
+  border: 1.2px solid #1976d2;
+  border-radius: 5px;
+  background: #f8faff;
+  font-size: 1em;
+  transition: border 0.2s;
+}
+.modal-form input[type="text"]:focus,
+.modal-form input[type="number"]:focus {
+  border: 1.2px solid #125ea2;
+  outline: none;
+}
+.modal-form button[type="submit"] {
+  background: linear-gradient(90deg, #1976d2 60%, #125ea2 100%);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 0;
+  font-size: 1.05em;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 8px #1976d220;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.modal-form button[type="submit"]:hover {
+  background: linear-gradient(90deg, #125ea2 60%, #1976d2 100%);
+  box-shadow: 0 4px 16px #1976d240;
+}
+
+/* Modal login específico */
+#uploadLoginForm {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+#uploadLoginForm input[type="text"],
+#uploadLoginForm input[type="password"] {
+  padding: 8px 10px;
+  border: 1.2px solid #1976d2;
+  border-radius: 5px;
+  background: #f8faff;
+  font-size: 1em;
+  transition: border 0.2s;
+}
+#uploadLoginForm input[type="text"]:focus,
+#uploadLoginForm input[type="password"]:focus {
+  border: 1.2px solid #125ea2;
+  outline: none;
+}
+#uploadLoginForm button[type="submit"] {
+  background: linear-gradient(90deg, #1976d2 60%, #125ea2 100%);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 0;
+  font-size: 1.05em;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 8px #1976d220;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+#uploadLoginForm button[type="submit"]:hover {
+  background: linear-gradient(90deg, #125ea2 60%, #1976d2 100%);
+  box-shadow: 0 4px 16px #1976d240;
+}
+#modalLoginError {
+  min-height: 22px;
+  text-align: center;
+  margin-bottom: 4px;
+}
+#closeUploadLoginModal {
+  align-self: center;
+  margin-top: 6px;
+  padding: 6px 18px;
+  border-radius: 5px;
+  border: none;
+  background: #eee;
+  color: #1976d2;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+#closeUploadLoginModal:hover {
+  background: #1976d2;
+  color: #fff;
 }
 .modal-title {
   margin: 0;

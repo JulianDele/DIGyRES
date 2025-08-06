@@ -1,4 +1,45 @@
 // search.js
+// Lógica para el modal de login antes de subir documento
+
+document.addEventListener('DOMContentLoaded', function() {
+  const goToUploadBtn = document.getElementById('goToUploadBtn');
+  const uploadLoginModal = document.getElementById('uploadLoginModal');
+  const uploadLoginForm = document.getElementById('uploadLoginForm');
+  const modalUsername = document.getElementById('modalUsername');
+  const modalPassword = document.getElementById('modalPassword');
+  const modalLoginError = document.getElementById('modalLoginError');
+  const closeUploadLoginModal = document.getElementById('closeUploadLoginModal');
+
+  if (goToUploadBtn) {
+    goToUploadBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      uploadLoginModal.style.display = 'flex';
+      modalLoginError.textContent = '';
+      modalUsername.value = '';
+      modalPassword.value = '';
+      modalUsername.focus();
+    });
+  }
+
+  if (closeUploadLoginModal) {
+    closeUploadLoginModal.addEventListener('click', function() {
+      uploadLoginModal.style.display = 'none';
+    });
+  }
+
+  if (uploadLoginForm) {
+    uploadLoginForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const user = modalUsername.value.trim();
+      const pass = modalPassword.value;
+      if (user === 'ADMIN' && pass === 'AYTM-M0') {
+        window.location.href = 'upload.html';
+      } else {
+        modalLoginError.textContent = 'Usuario o contraseña incorrectos';
+      }
+    });
+  }
+});
 // Lógica para buscar y mostrar documentos PDF desde Firestore
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -42,7 +83,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
       let list = '';
       if (docsWithFile.length > 0) {
-        list += docsWithFile.map(f => `<li style='margin:8px 0;'><a href="${f.url_archivo_pdf}" target="_blank" style="color:#1976d2;text-decoration:underline;">${f.titulo}</a></li>`).join('');
+        list += docsWithFile.map(f =>
+          `<li style='margin:8px 0;display:flex;align-items:center;gap:10px;justify-content:space-between;'>
+            <div>
+              <a href="${f.url_archivo_pdf}" target="_blank" style="color:#1976d2;text-decoration:underline;flex:1;">${f.titulo}</a>
+              <span style="font-size:0.97em;color:#1976d2;">
+                G,${f.grupo || '-'} L${f.legajo || '-'}, N°${f.numero_documento || '-'}
+              </span>
+            </div>
+            <div style="min-width:120px;text-align:right;">
+              ${f.url_original && typeof f.url_original === 'string' && f.url_original.trim() !== '' 
+                ? `<a href="/originales/${f.url_original}" target="_blank" style="color:#666;text-decoration:underline;">Ver original</a>` 
+                : ''}
+            </div>
+          </li>`
+        ).join('');
       }
       if (filesInUploads.length > 0) {
         list += filesInUploads.map(f => `<li style='margin:8px 0;'><a href="/uploads/${f}" target="_blank" style="color:#1976d2;text-decoration:underline;">${f}</a></li>`).join('');
@@ -61,3 +116,5 @@ document.addEventListener('DOMContentLoaded', function() {
 
   fetchPDFs();
 });
+
+// No mostrar archivos de /originales en la lista, solo los de MongoDB y /uploads

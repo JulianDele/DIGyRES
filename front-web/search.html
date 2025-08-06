@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Búsqueda | DigyRes</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-content space-between">
+      <a href="index.html" class="nav-btn">Inicio</a>
+      <div style="display:flex;gap:16px;">
+        <a href="search.html" class="nav-btn">Búsqueda</a>
+        <a href="#" class="nav-btn" id="goToUploadBtn">Subir documento</a>
+      </div>
+    </div>
+  </nav>
+  <!-- Modal de login para subir documento -->
+  <div id="uploadLoginModal" class="modal-bg" style="display:none;">
+    <div class="modal-content" style="max-width:350px;">
+      <h2>Iniciar sesión para subir documento</h2>
+      <form id="uploadLoginForm">
+        <input type="text" id="modalUsername" placeholder="Usuario" required />
+        <input type="password" id="modalPassword" placeholder="Contraseña" required />
+        <button type="submit">Iniciar sesión</button>
+      </form>
+      <div id="modalLoginError" style="color:#e53935;font-weight:bold;"></div>
+      <button id="closeUploadLoginModal" class="modal-close-btn" style="margin-top:10px;">Cerrar</button>
+    </div>
+  </div>
+  <div class="container">
+    <h1>Buscar documentos PDF</h1>
+    <form id="searchForm" class="search-form">
+      <input type="text" id="searchInput" placeholder="Buscar por nombre..." class="search-input" />
+      <button type="submit" class="nav-btn search-btn">Buscar</button>
+    </form>
+    <div id="search-results-section">
+      <div class="fila-titulos">
+        <h2 class="results-title">Resultados</h2>
+        <h2 class="results-title">Documento Original</h2>
+      </div>
+      <div id="pdfList"></div>
+      <h2 class="results-title" style="margin-top:24px;">Contenido relacionado</h2>
+      <div id="relatedList"></div>
+    </div>
+  </div>
+  <script src="search.js"></script>
+</body>
+</html>

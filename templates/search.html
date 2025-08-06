@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>Resultados de búsqueda</h1>
+  <ul>
+    {% for item in results %}
+      <li>
+        <h2>{{ item.title }}</h2>
+        <p>{{ item.description }}</p>
+        <button
+          {% if item.original_url %}
+            onclick="window.open('{{ item.original_url }}', '_blank')"
+          {% else %}
+            disabled
+          {% endif %}
+        >
+          Original
+        </button>
+      </li>
+    {% endfor %}
+  </ul>
+{% endblock %}

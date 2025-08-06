@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Upload Reconstruido</title>
+</head>
+<body>
+    <h1>Test Upload Documento Reconstruido</h1>
+    <form id="testForm">
+        <input type="file" id="pdfFile" accept=".pdf" required>
+        <input type="text" id="grupo" placeholder="Grupo" required>
+        <input type="text" id="legajo" placeholder="Legajo" required>
+        <input type="text" id="numeroDoc" placeholder="Número documento" required>
+        <button type="submit">Subir</button>
+    </form>
+    <div id="result"></div>
+
+    <script>
+        document.getElementById('testForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData();
+            formData.append('pdf', document.getElementById('pdfFile').files[0]);
+            formData.append('grupo', document.getElementById('grupo').value);
+            formData.append('legajo', document.getElementById('legajo').value);
+            formData.append('numero_documento', document.getElementById('numeroDoc').value);
+            
+            try {
+                const response = await fetch('/api/upload-reconstructed', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.text();
+                document.getElementById('result').innerHTML = `
+                    <h3>Respuesta del servidor:</h3>
+                    <pre>${result}</pre>
+                `;
+                
+                if (response.ok) {
+                    alert('¡Éxito! El documento se subió correctamente.');
+                } else {
+                    alert('Error: ' + result);
+                }
+            } catch (error) {
+                document.getElementById('result').innerHTML = `
+                    <h3>Error:</h3>
+                    <pre>${error.message}</pre>
+                `;
+                alert('Error: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>

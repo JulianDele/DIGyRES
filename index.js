@@ -4,15 +4,18 @@ const path = require('path');
 const fs = require('fs');
 const app = express()
 const pdfRoutes = require('./routes/pdf');
-const { getDocsFromCollection } = require('./routes/mongo'); // <-- asegúrate de importar esto
+const uploadReconstructedRoutes = require('./routes/upload-reconstructed');
+const { getDocsFromCollection } = require('./routes/mongo'); 
 
 app.use(cors()); 
 app.use(express.json());
 
-app.use('/pdf', pdfRoutes); // <-- debe ir después de los middlewares
+app.use('/pdf', pdfRoutes);
+app.use('/pdf', uploadReconstructedRoutes); 
 
 app.use(express.static(path.join(__dirname, 'front-web')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/originales', express.static(path.join(__dirname, 'originales')));
 
 const port = 3000
 

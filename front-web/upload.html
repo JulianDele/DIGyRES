@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Subir PDF</title>
+  <title>Subir PDF | DigyRes</title>
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js"></script>
@@ -14,17 +14,24 @@
   <nav class="navbar">
     <div class="navbar-content space-between">
       <a href="index.html" class="nav-btn">Inicio</a>
-      <a href="#" class="nav-btn arreglar-btn" id="openFixModal">Arreglar documentos</a>
+      <div style="display:flex;gap:16px;">
+        <a href="search.html" class="nav-btn">Búsqueda</a>
+        <button id="openFixModalBtn" class="nav-btn" type="button">Arreglar documentos</button>
+      </div>
     </div>
   </nav>
   <div class="container">
     <h1>Subir documento PDF</h1>
     <form id="uploadForm" enctype="multipart/form-data">
       <input type="file" name="pdf" accept="application/pdf" required />
+      <input type="text" name="grupo" placeholder="Grupo" required style="margin-top:10px;" />
+      <input type="number" name="legajo" placeholder="Legajo" required style="margin-top:10px;" min="0" step="1" />
+      <input type="number" name="numero_documento" placeholder="Número de documento" required style="margin-top:10px;" min="0" step="1" />
       <button type="submit">Subir documento</button>
     </form>
     <div id="result-container">
       <div id="result"></div>
+      <div id="numero-ocupado-error" style="color:#e53935;font-weight:bold;"></div>
     </div>
     <div id="search-results-section">
       <h2 class="results-title">Documentos almacenados</h2>
@@ -41,108 +48,17 @@
       </form>
       <div id="fixResult" class="modal-result"></div>
       <canvas id="pdf-canvas" class="modal-canvas"></canvas>
-      <button id="downloadFixedPdf" class="modal-download-btn">Descargar PDF generado</button>
-      <button id="downloadFixedDocx" class="modal-download-btn">Descargar DOCX generado</button>
+      <a id="downloadFixedPdf" class="modal-download-btn" style="display:none;" target="_blank">Descargar PDF generado</a>
+      <a id="downloadFixedDocx" class="modal-download-btn" style="display:none;" target="_blank">Descargar DOCX generado</a>
+      <form id="uploadFixedForm" class="modal-form" style="display:none;flex-direction:column;gap:14px;margin-top:16px;align-items:stretch;">
+        <input type="text" id="fixedGrupo" name="grupo" placeholder="Grupo" required />
+        <input type="number" id="fixedLegajo" name="legajo" placeholder="Legajo" required min="0" step="1" />
+        <input type="number" id="fixedNumeroDoc" name="numero_documento" placeholder="Número de documento" required min="0" step="1" />
+        <button type="submit" class="modal-download-btn" style="display:block;">Subir documento reconstruido</button>
+        <div id="uploadFixedResult" style="color:#1976d2;font-weight:bold;margin-top:6px;"></div>
+      </form>
       <button id="closeFixModal" class="modal-close-btn">Cerrar</button>
     </div>
   </div>
-  <script>
-    // Modal lógica
-    document.getElementById('openFixModal').onclick = function(e) {
-      e.preventDefault();
-      document.getElementById('fixModal').style.display = 'flex';
-      document.getElementById('fixResult').textContent = '';
-      document.getElementById('fixUploadForm').reset();
-      document.getElementById('pdf-canvas').style.display = 'none';
-      document.getElementById('downloadFixedPdf').style.display = 'none';
-      document.getElementById('downloadFixedDocx').style.display = 'none';
-    };
-    document.getElementById('closeFixModal').onclick = function() {
-      document.getElementById('fixModal').style.display = 'none';
-      document.getElementById('fixResult').textContent = '';
-      document.getElementById('pdf-canvas').style.display = 'none';
-      document.getElementById('downloadFixedPdf').style.display = 'none';
-      document.getElementById('downloadFixedDocx').style.display = 'none';
-    };
-
-    // Lógica de subida para el modal de arreglar documentos
-    document.getElementById('fixUploadForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      const fileInput = this.elements['pdf'];
-      const file = fileInput.files[0];
-      if (!file) return;
-      const resultDiv = document.getElementById('fixResult');
-      resultDiv.textContent = 'Procesando...';
-
-      const canvas = document.getElementById('pdf-canvas');
-      let downloadPdfBtn = document.getElementById('downloadFixedPdf');
-      let downloadDocxBtn = document.getElementById('downloadFixedDocx');
-      canvas.style.display = 'none';
-      downloadPdfBtn.style.display = 'none';
-      downloadDocxBtn.style.display = 'none';
-
-      // Elimina listeners previos y reasigna variables a los nuevos nodos
-      const newPdfBtn = downloadPdfBtn.cloneNode(true);
-      const newDocxBtn = downloadDocxBtn.cloneNode(true);
-      downloadPdfBtn.parentNode.replaceChild(newPdfBtn, downloadPdfBtn);
-      downloadDocxBtn.parentNode.replaceChild(newDocxBtn, downloadDocxBtn);
-      downloadPdfBtn = newPdfBtn;
-      downloadDocxBtn = newDocxBtn;
-
-      // Enviar archivo al backend para OCR y generación de PDF/DOCX
-      const formData = new FormData();
-      formData.append('pdf', file);
-
-      try {
-        const res = await fetch('/pdf/ocr', {
-          method: 'POST',
-          body: formData
-        });
-        const responseText = await res.text();
-        let data;
-        try {
-          data = JSON.parse(responseText);
-        } catch (e) {
-          resultDiv.textContent = 'Error inesperado: ' + responseText;
-          return;
-        }
-        if (res.ok) {
-          resultDiv.innerHTML = `
-            Documento procesado correctamente.<br>
-            <a href="${data.ocr_pdf}" download>Descargar PDF generado</a><br>
-            <a href="${data.ocr_docx}" download>Descargar DOCX generado</a>
-          `;
-          // Opcional: renderizar la primera página como preview
-          const reader = new FileReader();
-          reader.onload = async function(ev) {
-            const typedarray = new Uint8Array(ev.target.result);
-            try {
-              const pdf = await pdfjsLib.getDocument({data: typedarray}).promise;
-              const page = await pdf.getPage(1);
-              const viewport = page.getViewport({ scale: 0.6 });
-              canvas.width = viewport.width;
-              canvas.height = viewport.height;
-              const context = canvas.getContext('2d');
-              await page.render({ canvasContext: context, viewport }).promise;
-              canvas.style.display = 'block';
-            } catch {}
-          };
-          reader.readAsArrayBuffer(file);
-        } else {
-          resultDiv.textContent = 'Error al procesar: ' + (data.error || 'Desconocido');
-        }
-      } catch (err) {
-        resultDiv.textContent = 'Error al procesar: ' + err.message;
-      }
-    });
-
-    // Cargar pdf-lib desde CDN para crear PDFs desde canvas
-    if (!window.pdfLib) {
-      const script = document.createElement('script');
-      script.src = "https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js";
-      document.head.appendChild(script);
-      script.onload = () => { window.pdfLib = window['pdfLib']; };
-    }
-  </script>
 </body>
 </html>
